@@ -21,6 +21,6 @@ const commentSchema = new mongoose.Schema({
 
 
 //Step 3: Export..
- module.exports = mongoose.model("Commnet" , commentSchema);
+ module.exports = mongoose.model("Comment" , commentSchema);
 
 
