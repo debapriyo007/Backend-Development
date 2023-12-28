@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 4000;
 //Need Middleware to parse json req body.
 app.use(express.json());
 
-//Import Routes for TODO Api.
+//Import all Routes for TODO Api.
 const todoRoutes = require("./routes/todos");
 
 //mount my todo api's.

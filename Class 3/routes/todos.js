@@ -19,8 +19,5 @@ router.delete("/deleteTodo/:id", deleteTodo);
 
 
 
-
-
-
 //Export .
 module.exports = router;
