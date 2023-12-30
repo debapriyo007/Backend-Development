@@ -1,49 +1,64 @@
 const File = require("../models/file");
 const cloudinary = require("cloudinary").v2;
-//localFileUploade Handler.
 
-exports.localFileUploade = async (req, res) =>{
-    try{
+
+//localFileUploade Handler.
+exports.localFileUploade = async (req, res) => {
+    try {
         //Fetch file request.
         const file = req.files.file;
-        console.log("FILE AYGYA JEE-->",file);
+        console.log("FILE AYGYA JEE-->", file);
 
         // apni apna server er kon path a file k store korte chay6en 
         let path = __dirname + "/files/" + Date.now() + `.${file.name.split('.')[1]}`;
         console.log("PATH -->", path);
-        file.mv(path, (err)=>{ //path to move function.
+        file.mv(path, (err) => { //path to move function.
             console.log(err);
         });
 
         //Create Successfull response.
         res.json({
-            success:true,
-            message:"Local File Uploaded Successfully!"
+            success: true,
+            message: "Local File Uploaded Successfully!"
         });
-        
-    }catch(err){
+
+    } catch (err) {
         console.log("Not able to uploade the file in Server");
         console.log(err);
     }
 };
 
+
+
+
 //Check file Type Supported or not Function,,
-function isFileTypeSupported(type, supportedTypes){
+function isFileTypeSupported(type, supportedTypes) {
     return supportedTypes.includes(type);
 }
 
 //File Uplode in Cloudinary Function..
-async function fileUplodeCloudinary(file, folder){
-    const options ={folder};
+async function fileUplodeCloudinary(file, folder, quality) {
+    const options = { folder };
+    if(quality){
+        options.quality = quality;
+    }
+
+
+    options.resource_type = "auto"; 
     return await cloudinary.uploader.upload(file.tempFilePath, options);
 }
 
 
+
+
+
+
+
 //Image uplode Handler.
-exports.imageUploade = async(req, res) =>{
-    try{
+exports.imageUploade = async (req, res) => {
+    try {
         //Data Fetch .
-        const {name, tags, email} = req.body;
+        const { name, tags, email } = req.body;
         console.log(name, tags, email);
 
 
@@ -57,10 +72,10 @@ exports.imageUploade = async(req, res) =>{
         const fileType = file.name.split('.')[1].toLowerCase();
         console.log("FILE TYPE --->", fileType);
 
-        if(!isFileTypeSupported(fileType, supportedTypes)){
+        if (!isFileTypeSupported(fileType, supportedTypes)) {
             return res.status(400).json({
-                success:false, 
-                message:"File Format Not Supported!"
+                success: false,
+                message: "File Format Not Supported!"
             })
         }
 
@@ -72,25 +87,131 @@ exports.imageUploade = async(req, res) =>{
 
         //Entry Save in DB.
         const fileData = await File.create({
-            name, 
-            tags, 
-            email, 
-            imageUrl:response.secure_url, 
+            name,
+            tags,
+            email,
+            imageUrl: response.secure_url,
         })
 
         res.json({
-            success:true, 
-            imageUrl:response.secure_url,
-            message:"Image Successfully Uploade.."
+            success: true,
+            imageUrl: response.secure_url,
+            message: "Image Successfully Uploade.."
         })
 
 
-    }catch(err){
-        
+    } catch (err) {
+
         console.log(err);
         res.status(400).json({
-            success:false, 
-            message:"Something went Wrong!"
+            success: false,
+            message: "Something went Wrong!"
+        });
+    }
+};
+
+
+
+
+//Video Uploade Function..
+exports.videoUploade = async (req, res) => {
+    try {
+        //Data Fetch .
+        const { name, tags, email } = req.body;
+        console.log(name, tags, email);
+        const file = req.files.videoFile;
+
+        //Now Validation.
+        const supportedTypes = ["mp4", "mov"];
+        //Find my file type.
+        const fileType = file.name.split('.')[1].toLowerCase();
+        console.log("FILE TYPE --->", fileType);
+
+        if (!isFileTypeSupported(fileType, supportedTypes)) {
+            return res.status(400).json({
+                success: false,
+                message: "File Format Not Supported!"
+            })
+        }
+
+        console.log("Uplodeing to Debu Folder..");
+        const response = await fileUplodeCloudinary(file, "Debu");
+        console.log(response);
+
+        // Video File Entry Save in DB.
+        const fileData = await File.create({
+            name,
+            tags,
+            email,
+            imageUrl: response.secure_url,
+        })
+        res.json({
+            success: true,
+            imageUrl: response.secure_url,
+            message: "Video Successfully Uploade.."
+        })
+
+
+
+    }catch (err) {
+        console.error(err);
+        res.status(400).json({
+            success: false,
+            message: "Something Went Wrong!",
+        })
+    }
+}
+
+
+//Image Size Reducer Handlers.
+exports.imageSizeReducer = async(req, res)=>{
+    try{
+        //Data Fetch .
+        const { name, tags, email } = req.body;
+        console.log(name, tags, email);
+
+
+        //fatch File.
+        const file = req.files.imageFile;
+        console.log(file);
+
+        //Now Validation.
+        const supportedTypes = ["jpg", "png", "jpeg", "svg"];
+        //Find my file type.
+        const fileType = file.name.split('.')[1].toLowerCase();
+        console.log("FILE TYPE --->", fileType);
+
+        if (!isFileTypeSupported(fileType, supportedTypes)) {
+            return res.status(400).json({
+                success: false,
+                message: "File Format Not Supported!"
+            })
+        }
+
+        //File fortmat Supported hai.
+        console.log("Uplodeing to Debu Folder..");
+        const response = await fileUplodeCloudinary(file, "Debu", 90);
+        console.log(response);
+
+        //Entry Save in DB.
+        const fileData = await File.create({
+            name,
+            tags,
+            email,
+            imageUrl: response.secure_url,
+        })
+
+        res.json({
+            success: true,
+            imageUrl: response.secure_url,
+            message: "Image Successfully Uploade.."
+        })
+
+    }catch(err){
+        console.error(err);
+        res.status(400).json({
+            success: false,
+            message: "Something Went Wrong!",
         });
     }
 }
