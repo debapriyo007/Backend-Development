@@ -3,6 +3,8 @@ const OTP = require("../models/otp");
 const otpGenerator = require("otp-generator");
 const bcrypt = require("bcrypt");
 const Profile = require("../models/profile");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 //send otp handler.
 exports.sendOTP = async (req, res) => {
     try {
@@ -168,6 +170,81 @@ exports.signUp = async (req, res) => {
 
 //Login
 
+exports.login = async(req, res) =>{
+    try{
+        //1st Step : fetch all data from req body.
+        const {email, password} = req.body;
+        //check the data is valid or not.
+        if(!email || !password){
+            return res.status(403).json({
+                success:false, 
+                message:"All feilds are required pleas enter the all fields!"
+            });
+        }
+        //2nd Step: User exist or not.
+        const user = await User.findOne({email}).populate("additionalDetails");
+        if(!user){
+            return res.status(401).json({
+                success:false, 
+                message:"Please go and Register then you are able to Login."
+            });
+        }
+
+
+        //3rd Step: generate JWT token and matching the password.
+
+        if(await bcrypt.compare(password, user.password)){
+            const payload = {
+                email:user.email, 
+                id:user._id, 
+                role:user.role,
+            }
+             //if password is matched then create token.
+             const token = jwt.sign(payload, process.env.JWT_SECRECT, {
+                expiresIn:"2h",
+            });
+            user.token = token;
+            user.password = undefined;
+            //4th Step : create cookies and send response.
+            const options = {
+                expires:new Date(Date.now() + 3*24*60*60*1000), 
+                httpOnly:true,
+            }
+            res.cookie("token", token, options).status(200).json({
+                success:true, 
+                user, 
+                token, 
+                message:"Log in Successfully.."
+            })
+        }else{
+            return res.status(401).json({
+                success:false, 
+                meassage:"PassWord is Incorrect!"
+            });
+        }
+
+
+
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json({
+            success:false, 
+            message:"Login Fail , Please try again later.",
+        });
+    }
+}
+
 
 
 //changePassword
+exports.changePassword  = async(req, res) =>{
+    //getdata from res body.
+    //get oldpass , newPassword, confirm password
+    //validition.
+
+
+    //update pwd in db.
+    //send mail and password updated.
+    //return response.
+}
