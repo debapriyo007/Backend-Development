@@ -197,7 +197,7 @@ exports.login = async(req, res) =>{
             const payload = {
                 email:user.email, 
                 id:user._id, 
-                role:user.role,
+                accountType:user.accountType,
             }
              //if password is matched then create token.
              const token = jwt.sign(payload, process.env.JWT_SECRECT, {
