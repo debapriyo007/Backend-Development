@@ -40,6 +40,12 @@ const UserSchema = new mongoose.Schema({
         type: String,
         require:true,
     }, 
+    token:{
+        type:String,
+    },
+    resetPasswordExpires:{
+        type:String,
+    },
     courseProgress:[
         {
             type: mongoose.Schema.Types.ObjectId,
