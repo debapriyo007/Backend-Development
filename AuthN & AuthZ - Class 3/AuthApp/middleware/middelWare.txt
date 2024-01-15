@@ -1,0 +1,4 @@
+<----- MiddleWare --->
+
+'Ami jodi 'admin' hoi and ami 'Student' er route k access korte chai sekhetea middeware amake inttrupt korbe.'
+
