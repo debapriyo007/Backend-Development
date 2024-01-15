@@ -97,3 +97,76 @@ exports.capturePayment = async(req, res) =>{
     }
 }
 
+
+//Verify segnature.
+exports.verifySignature = async(req, res) =>{
+    try {
+        const webhookSecret = "12345678"
+
+        const signature = req.headers["x-razorpay-signature"]
+        const shasum = crypto.createHmac("sha256", webhookSecret)
+        //ay Hmac obj ta ke String formate a convert korete hobe.
+        shasum.update(JSON.stringify(req.body))
+        const digest = shasum.diagest("hex")
+
+        //match the signature and digest.
+        if(signature === digest){
+            console.log("Payment is Authorized..")
+            const {couserId, userId} = req.body.playload.payment.entity.notes;
+             
+            try {
+                //full fill our actions.
+                const enrolledCourse = await Course.findOneAndUpdate(
+                                                                    {_id:couserId},
+                                                                    {$push:{studentsEnrolled:userId}},
+                                                                    {new:true}
+                );
+                if(!enrolledCourse){
+                    return res.status(400).json({
+                        success:false, 
+                        message:'Course not Found!'
+                    })
+                };
+                console.log(enrolledCourse)
+
+                const enrolledStudents = await User.findOneAndUpdate(
+                                                {_id:userId},
+                                                {$push:{courses:couserId}},
+                                                {new:true}
+                )
+
+                console.log(enrolledStudents)
+
+                //Successfully purchase hoyagele mail send korbo.
+                const emailResponse = mailSender(
+                    enrolledStudents.email,
+                    "Congratulation!",
+                    "Go to your DashBoard to accss the Course!"
+                );
+                
+                return res.status(200).json({
+                    success:true, 
+                    message:'Signature Added and Course Verified!'
+                })
+            } catch (err) {
+                console.log(err)
+                return res.status(500).json({
+                    success:false, 
+                    message:'There are Some issue while Verify Signature!'
+                })
+            }
+        }else{
+            return res.status(400).json({
+                success:false, 
+                message:'Invalid Request!'
+            })
+        }
+
+    } catch (err) {
+        console.log(err)
+        return res.status(400).json({
+            success:false, 
+            message:err.message,
+        })
+    }
+}
