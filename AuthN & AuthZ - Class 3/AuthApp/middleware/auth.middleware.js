@@ -24,7 +24,7 @@ exports.auth = async (req, res, next) => {
         // No 2: Verify the token given by the user
         try {
             const payload = jwt.verify(token, process.env.JWT_SECRET); // Decode the token to check if it's valid
-            console.log(decode);
+            // console.log(payload);
             req.user = payload;
         } catch (err) {
             return res.status(400).json({
