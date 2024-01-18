@@ -23,11 +23,12 @@ exports.createSection = async(req, res) =>{
                                                         courseContent:newSection._id
                                                             }
                                                     }, {new:true}
-        )
+        ).populate('courseContent')
+         .exec()
         //send response.
         return res.status(200).json({
             success:true, 
-            message:"Sub-Section created Successfuly", 
+            message:"Section created Successfuly", 
             updatedCourseDetails, 
         })
 

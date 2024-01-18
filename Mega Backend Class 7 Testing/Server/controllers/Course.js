@@ -1,21 +1,21 @@
 const Course = require("../models/course")
-const Category = require("../models/category")
+const CategoryModel = require("../models/category")
 const User = require("../models/user")
 
 //import uploade cloudinary file.
-const {uploadImageCloudinary} = require("../utils/imageUploade")
+const {uploadImageToCloudinary} = require("../utils/imageUploade")
  
 //write create Course handler function.
 exports.createCourse  = async(req, res) =>{
     try {
         //get data.
-        const {courseName,courseDescription, whatYouWillLearn, price, tag} = req.body;
+        let {courseName,courseDescription, whatYouWillLearn, price, Category, tag, status} = req.body;
 
         //get thumbnail.
         const thumbnail = req.files.thumbnailImage
         
         //validation.
-        if(!courseName || !courseDescription || !whatYouWillLearn||!price || !tag || thumbnail){
+        if(!courseName || !courseDescription || !whatYouWillLearn||!price || !Category || !thumbnail ||!tag ){
             return res.status(401).json({
                 success:false, 
                 message:"All Field are need to be reqired!"
@@ -33,9 +33,12 @@ exports.createCourse  = async(req, res) =>{
                 message:"Instructor Details not found!"
             });
         }
+        if (!status || status === undefined) {
+			status = "Draft";
+		}
 
         //check give Category is valid or not.
-        const CategoryDeatils = await Category.findById(Category)
+        const CategoryDeatils = await CategoryModel.findById(Category)
         if(!CategoryDeatils){
             return res.status(402).json({
                 success:false, 
@@ -44,7 +47,7 @@ exports.createCourse  = async(req, res) =>{
         }
 
         //uploade image to Cloudinary.
-        const thumbnailImage = await uploadImageCloudinary(thumbnail, process.env.FOLDER_NAME)
+        const thumbnailImage = await uploadImageToCloudinary(thumbnail, process.env.FOLDER_NAME)
 
         //create a entry for new Course.
         const newCourse = await Course.create({
@@ -55,8 +58,9 @@ exports.createCourse  = async(req, res) =>{
             price, 
             Category:CategoryDeatils._id, 
             thumbnail:thumbnailImage.secure_url,
-
-             
+            tag:tag,
+            category:CategoryDeatils._id,
+            status:status,
         });
 
         //add this new couser in Instructor list
@@ -124,38 +128,34 @@ exports.getAllCourser = async(req, res) =>{
 // Get all course details
 exports.getAllCourseDetails = async (req, res) => {
     try {
-        const {CourseId} = req.body;
-        const courseDetails = await Course.findById(
-                                                {_id:CourseId})
-                                                .populate(
-                                                    {
-                                                        path:"instructor", 
-                                                        populate:{
-                                                            path:"additionalDetails"
-                                                        },
-                                                    }
-                                                )
-                                                .populate("category")
-                                                .populate("ratingAndReviews")
-                                                .populate({
-                                                    path:"courseContent",
-                                                    populate:{
-                                                        path:"subSection"
-                                                    }
-                                                })
-                                                .exec();
+        const { CourseId } = req.body;
+        const courseDetails = await Course.findById({ _id: CourseId })
+            .populate({
+                path: "instructor",
+                populate: {
+                    path: "additionalDetails",
+                },
+            })
+            .populate("category")
+            .populate("ratingAndReviews")
+            .populate({
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                },
+            })
+            .exec();
 
-        
-        if(!courseDetails){
+        if (!courseDetails) {
             return res.status(500).json({
                 success: false,
-                message: `Could't Find the Couser in this CourseId ${CourseId}`,
+                message: `Couldn't find the Course in this CourseId ${CourseId}`,
             });
         }
         return res.status(200).json({
             success: true,
             message: "Get all course details successfully",
-            couseInfo: courseDetails,
+            courseInfo: courseDetails,
         });
     } catch (err) {
         console.log(err);
