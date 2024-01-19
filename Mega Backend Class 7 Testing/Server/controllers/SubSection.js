@@ -55,11 +55,14 @@ exports.createSubSection = async (req, res) => {
 
 
 
+//Ay duto hander a amake id Req er Paramas theke nite hobe
+//Left Some Work.
+  
 //Hw: Update subsection.
 exports.updateSubSection = async(req, res) => {
     try {
         // Get the subsection ID from the request parameters
-        const { id } = req.user.id;
+        const { id } = req.body;
 
         // Get the updated data from the request body
         const { title, timeDuration, description } = req.body;
@@ -98,7 +101,7 @@ exports.updateSubSection = async(req, res) => {
 exports.deleteSubSection = async (req, res) => {
     try {
         // Get the subsection ID from the request parameters
-        const { id } = req.user.id;
+        const { id } = req.body;
 
         // Find the subsection by ID and delete it
         const deletedSubSection = await SubSection.findByIdAndDelete(id);

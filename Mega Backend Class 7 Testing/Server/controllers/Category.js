@@ -1,5 +1,5 @@
 const Category = require("../models/category")
-
+const Course = require('../models/course')
 //create Category controller
 exports.createCategory = async(req, res) =>{
     try {
@@ -56,52 +56,53 @@ exports.showallCategorys = async(req, res) =>{
 }
 
 //HW:  Catagory Page Details.
-exports.categoryPageDetails= async(req, res) =>{
+exports.categoryPageDetails = async (req, res) => {
     try {
-        //get categoryId.
-        const {categoryId} = req.body
-        //get courses for particular Id.
+        // get categoryId
+        const { categoryId } = req.body;
+
+        // get courses for particular Id
         const selectedCategory = await Category.findById(categoryId)
-                                                .populate("courses")
-                                                .exec()
-        //validation
-        if(!selectedCategory){
+            .populate("courses")
+            .exec();
+
+        // validation
+        if (!selectedCategory) {
             return res.status(404).json({
-                success:false, 
-                message:"Course Data Not Found!"
-            })
+                success: false,
+                message: "Course Data Not Found!"
+            });
         }
-        //get courser for different catagories
-        const differentCategories= await Category.find({
-            _id:{$ne:categoryId}, //ne --> not equal
+
+        // get courses for different categories
+        const differentCategories = await Category.find({
+            _id: { $ne: categoryId } // ne --> not equal
         })
-        .populate("courses")
-        .exec()
+            .populate("courses")
+            .exec();
 
-
-        //get top 10 selling cousers
-        //HW: base on selling i will give the priority of courses which i will show.
+        // get top 10 selling courses
+        // HW: base on selling, give priority to the courses to be shown
 
         const topSellingCourses = await Course.find()
             .sort({ sales: -1 })
             .limit(10)
             .exec();
-        
-            
-        //return response
+
+        // return response
         return res.status(200).json({
-            success:true, 
-            data:{
+            success: true,
+            data: {
                 selectedCategory,
                 differentCategories,
                 topSellingCourses
             }
-        })
-
+        });
     } catch (err) {
+        console.error(err)
         res.status(500).json({
-            success:false, 
-            message:message.err,
-        })
+            success: false,
+            message: "Something error occurred while getting all Category Details!!!"
+        });
     }
-}
+};

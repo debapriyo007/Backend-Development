@@ -25,8 +25,7 @@ exports.createCourse  = async(req, res) =>{
         //check Instructor or not.
         const userId = req.user.id
         const InstructorDetails = await User.findById(userId)
-        console.log(`Instructor Details : ${InstructorDetails}`)
-
+        console.log(`Instructor Details: ${InstructorDetails}`);
         if(!InstructorDetails){
             return res.status(402).json({
                 success:false, 
